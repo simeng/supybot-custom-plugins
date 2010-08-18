@@ -16,7 +16,15 @@ class SC2(callbacks.Plugin):
         Show sc2 ranks for a character
         """
 
-        colors = range(3, 16)
+        # 1v1: red, 2v2: green, 3v3: blue, 4v4: purple
+        bracket_colors = [4, 9, 12, 13]
+        league_colors = {
+            'bronze': 5, 
+            'silver': 14, 
+            'gold': 8, 
+            'diamond': 16, 
+            'platinum': 11
+        }
 
         if bnet_id == None:
             try:
@@ -61,9 +69,7 @@ class SC2(callbacks.Plugin):
             string += 'http://eu.battle.net/sc2/en/profile/%s/1/%s/ ' % (bnet_id, name)
             i = 0
             for t in js['teams']:
-                string += "\x03%s" % ( colors[t['bracket']] )
-                string += "[%sv%s] %s/%s [%s] %spt %s #%s  " % ( t['bracket'], t['bracket'], t['wins'], t['losses'], t['league'], t['points'], t['division'], t['division_rank'] )
-                string += "\x03"
+                string += "[\x03%02d%sv%s\x03] %s/%s [\x03%02d%s\x03] %spt %s #%s  " % ( bracket_colors[t['bracket']], t['bracket'], t['bracket'], t['wins'], t['losses'], league_colors[t['league']], t['league'], t['points'], t['division'], t['division_rank'] )
                 i +=1
 
             irc.reply(string.encode("UTF-8"))
