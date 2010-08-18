@@ -10,16 +10,35 @@ class SC2(callbacks.Plugin):
         callbacks.Plugin.__init__(self, irc)
         self.errorReported = False
 
-    def sc(self, irc, msg, args, name, charcode):
-        """<name> <charcode>
+    def sc(self, irc, msg, args, name, bnet_id):
+        """<name> [<bnet_id>]
 
         Show sc2 ranks for a character
         """
 
         colors = range(3, 16)
 
+        if bnet_id == None:
+            try:
+                url = "http://sc2ranks.com/api/search/eu/%s" % (name)
+                d = urllib.urlopen(url).read()
+            except IOError, i:
+                irc.reply("Failed searching for character %s" % (name))
+                return
+
+            js = json.loads(d)
+
+            if js['total'] == 0:
+                irc.reply("Didn't find anyone named '%s'" % (name))
+                return
+            elif js['total'] == 1:
+                bnet_id = unicode(js['characters'][0]['bnet_id'])
+            else:
+                irc.reply("Found the following bnet_ids: " + ", ".join(["%s[%s]" % (char['name'], unicode(char['bnet_id'])) for char in js['characters']]))
+                return
+
         try:
-            url = "http://sc2ranks.com/api/char/eu/%s$%s" % (name, charcode)
+            url = "http://sc2ranks.com/api/char/eu/%s!%s" % (name, bnet_id)
             d = urllib.urlopen(url).read()
         except IOError, i:
             if self.errorReported == False:
@@ -45,7 +64,7 @@ class SC2(callbacks.Plugin):
 
             irc.reply(string.encode("UTF-8"))
 
-    sc = wrap(sc, ['something', 'something'])
+    sc = wrap(sc, ['something', optional('something')])
 
 
 Class = SC2
