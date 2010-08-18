@@ -67,10 +67,8 @@ class SC2(callbacks.Plugin):
                 return 
 
             string += 'http://eu.battle.net/sc2/en/profile/%s/1/%s/ ' % (bnet_id, name)
-            i = 0
             for t in js['teams']:
-                string += "[\x03%02d%sv%s\x03] %s/%s [\x03%02d%s\x03] %spt %s #%s  " % ( bracket_colors[t['bracket']], t['bracket'], t['bracket'], t['wins'], t['losses'], league_colors[t['league']], t['league'], t['points'], t['division'], t['division_rank'] )
-                i +=1
+                string += "[\x03%02d%sv%s\x03] %s/%s [\x03%02d%s\x03] %spt %s #%s  " % ( bracket_colors[t['bracket']-1], t['bracket'], t['bracket'], t['wins'], t['losses'], league_colors[t['league']], t['league'], t['points'], t['division'], t['division_rank'] )
 
             irc.reply(string.encode("UTF-8"))
 
