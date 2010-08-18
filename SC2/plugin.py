@@ -33,6 +33,7 @@ class SC2(callbacks.Plugin):
                 return
             elif js['total'] == 1:
                 bnet_id = unicode(js['characters'][0]['bnet_id'])
+                name = js['characters'][0]['name']
             else:
                 irc.reply("Found the following bnet_ids: " + ", ".join(["%s[%s]" % (char['name'], unicode(char['bnet_id'])) for char in js['characters']]))
                 return
