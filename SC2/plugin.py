@@ -28,7 +28,7 @@ class SC2(callbacks.Plugin):
 
             js = json.loads(d)
 
-            if js['total'] == 0:
+            if 'error' in js or js['total'] == 0:
                 irc.reply("Didn't find anyone named '%s'" % (name))
                 return
             elif js['total'] == 1:
@@ -54,7 +54,10 @@ class SC2(callbacks.Plugin):
         if len(js) > 0:
             string = u''
             
-            bnet_id = unicode(js['bnet_id'])
+            if 'error' in js:
+                irc.reply("Character %s with bnet_id %s not found" % (name, bnet_id))
+                return 
+
             string += 'http://eu.battle.net/sc2/en/profile/%s/1/%s/ ' % (bnet_id, name)
             i = 0
             for t in js['teams']:
