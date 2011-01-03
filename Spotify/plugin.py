@@ -36,6 +36,7 @@ import supybot.callbacks as callbacks
 import supybot.ircmsgs as ircmsgs
 import re
 import urllib2
+import json
 
 class Spotify(callbacks.Plugin):
     """Add the help for "@plugin help Spotify" here
@@ -58,11 +59,19 @@ class Spotify(callbacks.Plugin):
                     irc.queueMsg(ircmsgs.privmsg(channel, reply))
 
     def fetch(self, type, uri):
-        req = urllib2.Request("http://spotify.url.fi/%s/%s?txt" % (type, uri))
+        req = urllib2.Request("http://ws.spotify.com/lookup/1/.json?uri=spotify:%s:%s" % (type, uri))
         opener = urllib2.build_opener()
         req.add_header("User-agent", "irssi/0.8.12 Python-urllib/2.1")
         data = opener.open(req).read()
-        return data
+        d = json.loads(data)
+        if 'album' in d:
+            text = d['album']['name']
+        elif 'track' in d:
+            text = "%s - %s" % (d['track']['artists'][0]['name'], d['track']['name'])
+        elif 'artist' in d:
+            text = d['artist']['name']
+
+        return text
 
 Class = Spotify
 
