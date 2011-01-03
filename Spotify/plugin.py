@@ -71,7 +71,7 @@ class Spotify(callbacks.Plugin):
         elif 'artist' in d:
             text = d['artist']['name']
 
-        return text
+        return text.encode("UTF-8")
 
 Class = Spotify
 
