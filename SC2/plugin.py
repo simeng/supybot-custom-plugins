@@ -28,7 +28,7 @@ class SC2(callbacks.Plugin):
 
         if bnet_id == None:
             try:
-                url = "http://sc2ranks.com/api/search/eu/%s" % (name)
+                url = "http://sc2ranks.com/api/search/eu/%s?appKey=h4x.no" % (name)
                 d = urllib.urlopen(url).read()
             except IOError, i:
                 irc.reply("Failed searching for character %s" % (name))
@@ -47,7 +47,7 @@ class SC2(callbacks.Plugin):
                 return
 
         try:
-            url = "http://sc2ranks.com/api/char/eu/%s!%s" % (name, bnet_id)
+            url = "http://sc2ranks.com/api/char/eu/%s!%s?appKey=h4x.no" % (name, bnet_id)
             d = urllib.urlopen(url).read()
         except IOError, i:
             if self.errorReported == False:
