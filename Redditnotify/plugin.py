@@ -47,7 +47,11 @@ class Redditnotify(callbacks.Plugin):
         self.announced_urls = []
 
     def reddit(self, irc, msg, args, subreddit):
-        stories = supyreddit.fetch_stories(subreddit, amount=5)
+        try:
+            stories = supyreddit.fetch_stories(subreddit, amount=5)
+        except Exception, e:
+            irc.reply(str(e))
+            return
         for story in stories:
             url = story.url
             replies = []
