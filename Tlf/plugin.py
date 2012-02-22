@@ -40,24 +40,9 @@ import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 import supybot.ircmsgs as ircmsgs
 
-#sys.path.insert('/home/alexis/plugins/WTF8')
-import BeautifulSoup, sys, re, urllib
-
-class AttenNittiParser:
-    def __init__(self):
-        self.soup = BeautifulSoup.BeautifulSoup()
-
-    def lookup(self, tlf):
-        """ Lookup using http get variables contained in data """
-        url = "http://1890.no/?type=Privat&query=%d" % tlf
-        data = urllib.urlopen(url).read()
-
-        self.soup.feed(data.decode("UTF-8"))
-        interesting_row = self.soup.find(attrs={"class": re.compile(".*vcard.*")})
-
-        data = dict([(x.attrs[0][1], x.text) for x in interesting_row.findAll("span") ])
-        return data
-        
+import urllib2
+import re
+import sys
 
 class Tlf(callbacks.Plugin):
     """Add the help for "@plugin help Tlf" here
@@ -68,9 +53,27 @@ class Tlf(callbacks.Plugin):
         <tlf number>
         '''
 
-        parser = AttenNittiParser()
-        data = parser.lookup(int(lookup))
-        reply = ', '.join([ "%s: %s" % (k.encode("UTF-8"), v.encode("UTF-8")) for k, v in data.items() ])
+        f = urllib2.urlopen("http://www.1881.no/?Query=" + lookup)
+        html = f.read()
+        pattern = '<div.*?id="content_main".*?>.*?<div.*?class="listing alt".*?>.*?<h3><a[^>]*>(.*?)</a>.*?<span>(.*?)</span>.*?</h3>.*?<p.*?class="listing_address">.*?<span>(.*?)</span>.*?</p>'
+        p = re.compile(pattern, re.S);
+        m = p.search(html);
+
+        if m and len(m.groups()) == 3:
+            name = m.group(1)
+
+            # strip non-numeric characters in phone number
+            phone = re.sub('[^0-9]+', '', m.group(2))
+            address = m.group(3)
+            
+            # print. the good old sprintf way
+            reply = "Name: %s, Phone: %s, Address: %s" % (name, phone, address)
+        else:
+            reply = "Sorry! No match :-("
+
+        f.close();
+
+        #reply = ', '.join([ "%s: %s" % (k.encode("UTF-8"), v.encode("UTF-8")) for k, v in data.items() ])
         if reply:
             irc.reply(reply, prefixNick=False)
 
