@@ -53,7 +53,7 @@ class Tlf(callbacks.Plugin):
         <tlf number>
         '''
 
-        f = urllib2.urlopen("http://www.1881.no/?Query=" + lookup)
+        f = urllib2.urlopen("http://www.1881.no/?Query=" + urllib2.quote(lookup))
         html = f.read()
         pattern = '<div.*?id="content_main".*?>.*?<div.*?class="listing alt".*?>.*?<h3><a[^>]*>(.*?)</a>.*?<span>(.*?)</span>.*?</h3>.*?<p.*?class="listing_address">.*?<span>(.*?)</span>.*?</p>'
         p = re.compile(pattern, re.S);
