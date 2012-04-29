@@ -37,6 +37,7 @@ import supybot.ircmsgs as ircmsgs
 import re
 import urllib2
 import json
+import pprint
 
 class Spotify(callbacks.Plugin):
     """Add the help for "@plugin help Spotify" here
@@ -51,18 +52,32 @@ class Spotify(callbacks.Plugin):
             else:
                 message = msg.args[1]
 
-            m = re.search("(http://open.spotify.com/|spotify:)(?P<type>album|artist|track)([:/])(?P<spoturi>[a-zA-Z0-9]+)/?", message)
+            m = re.search("(?:https?://open\.spotify\.com|spotify)[:/](?P<a>[^:/]+)[:/](?P<b>[^:/]+)([:/]playlist[:/](?P<c>[^:/]+))?$", message)
             if m:
                 r = m.groupdict()
-                reply = self.fetch(r['type'], r['spoturi'])
+                type = "playlist" if r['c'] else r['a']
+                hash = r['c'] if r['c'] else r['b']
+                user = r['b'] if r['c'] else False
+                reply = self.fetch(type, hash, user)
                 if reply:
                     irc.queueMsg(ircmsgs.privmsg(channel, reply))
 
-    def fetch(self, type, uri):
-        req = urllib2.Request("http://ws.spotify.com/lookup/1/.json?uri=spotify:%s:%s" % (type, uri))
+    def fetch(self, type, hash, user):
+        if type == "playlist":
+            url = "http://open.spotify.com/user/%s/playlist/%s" % (user, hash)
+        else:
+            url = "http://ws.spotify.com/lookup/1/.json?uri=spotify:%s:%s" % (type, hash)
+        req = urllib2.Request(url)
         opener = urllib2.build_opener()
         req.add_header("User-agent", "irssi/0.8.12 Python-urllib/2.1")
         data = opener.open(req).read()
+
+        if "playlist" == type:
+            m = re.search("<title>(?P<name>.+?) by (?P<user>.+?) on Spotify</title>", data)
+            if m:
+                r = m.groupdict()
+                return "Spilleliste: %s av %s" % (r['name'], r['user'])
+
         d = json.loads(data)
         if 'album' in d:
             text = d['album']['name']
