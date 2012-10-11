@@ -16,6 +16,7 @@ from xml.sax import saxutils
 from xml.sax import SAXException
 from xml.sax.handler import feature_namespaces
 from xml.sax.handler import feature_validation
+import supybot.ircutils as ircutils
 import re
 import time
 
@@ -43,8 +44,47 @@ class Yr(callbacks.Plugin):
     def __init__(self, irc):
         callbacks.Plugin.__init__(self, irc)
 
-    def varsel(self, irc, msg, args, opts, verargs):
-        """[--all] <sted>
+    def forecast(self, irc, msg, args, opts, verargs):
+        """[--explicit] <area>
+
+        Vervarsel
+        """
+        if not opts:
+            stad = verargs.capitalize()
+            viktigestader = file('plugins/Yr/places.txt').read()
+            pattern = '[0-9]+\t%s\t[0-9]+.*\thttp://(?P<url>.*)\t' %stad
+            url = re.findall(pattern, viktigestader)
+
+            if not url:
+                irc.reply(u'Gidd ikkje finna varsel for slik ein drittplass.'.encode('ISO-8859-1'))
+                return
+
+            url = url[0]
+        else:
+            dopts = dict(opts)
+            if 'explicit' in dopts:
+                a, b, c = verargs.split()
+                url = "www.yr.no/stad/%s/%s/%s/varsel.xml" %(a, b, c)
+        url = quote(url)
+        varselxml = urlopen('http://' + url)
+
+        parser = make_parser()
+        parser.setFeature(feature_namespaces, False)
+        parser.setFeature(feature_validation, False)
+        dh = ForecastParser()
+        parser.setContentHandler(dh)
+        try:
+            parser.parse(varselxml)
+        except SAXException:
+            irc.reply('Parse Exception')
+
+        self.resultatarr = dh.varselContent.encode('ISO-8859-1').split(':',2)
+        irc.reply(ircutils.bold(self.resultatarr[0]) + ":" + self.resultatarr[1])
+
+    forecast = wrap(forecast, [getopts({'explicit':''}),'text'])
+
+    def weather(self, irc, msg, args, opts, verargs):
+        """[--all] <area>
 
         Les mer om vilkår for bruk av gratis værdata + retningslinjer på http://www.yr.no/verdata/ 
         """
@@ -65,7 +105,7 @@ class Yr(callbacks.Plugin):
         parser = make_parser()
         parser.setFeature(feature_namespaces, False)
         parser.setFeature(feature_validation, False)
-        dh = VarselParser()
+        dh = WeatherParser()
         parser.setContentHandler(dh)
         try:
             parser.parse(varselxml)
@@ -78,11 +118,35 @@ class Yr(callbacks.Plugin):
 
         irc.reply(text.encode('UTF-8'))
 
-    varsel = wrap(varsel, [getopts({'all':''}),'text'])
+    weather = wrap(weather, [getopts({'all':''}),'text'])
 
 Class = Yr
 
-class VarselParser(ContentHandler):
+class ForecastParser(ContentHandler):
+
+    def __init__(self):
+        self.inBodyContent = False
+        self.done = False
+        self.varselContent = ""
+
+    def startElement(self, name, attrs):
+        if name != 'body': return
+
+        self.inBodyContent = True
+    
+    def characters(self, ch):
+        if not self.done and self.inBodyContent:
+            self.varselContent = self.varselContent + ch
+
+    def endElement(self, name):
+        if name == 'body':
+            self.inBodyContent = False
+            self.done = True
+            self.varselContent = self.varselContent.replace("<strong>","")
+            self.varselContent = self.varselContent.replace("</strong>","")
+            self.varselContent = normalize_whitespace(self.varselContent)
+
+class WeatherParser(ContentHandler):
 
     def __init__(self):
         self.inBodyContent = False
