@@ -19,6 +19,7 @@ from xml.sax.handler import feature_validation
 import supybot.ircutils as ircutils
 import re
 import time
+import os
 
 def normalize_whitespace(text):
     "Remove redundant whitespace from a string"
@@ -30,10 +31,10 @@ def format_weather(item):
     else:
         temptype = 'F'
 
-    return u'%s: %s, %d°%s, %s %.1fm/s %s' % (
+    return u'%s: %s, %s°%s, %s %.1fm/s %s' % (
             item['station']['name'],
             item['symbol']['name'],
-            int(item['temperature']['value']),
+            item['temperature']['value'],
             temptype,
             item['wind']['speed']['name'],
             float(item['wind']['speed']['mps']),
@@ -51,7 +52,7 @@ class Yr(callbacks.Plugin):
         """
         if not opts:
             stad = verargs.capitalize()
-            viktigestader = file('plugins/Yr/places.txt').read()
+            viktigestader = file(os.path.dirname(__file__) + '/places.txt').read()
             pattern = '[0-9]+\t%s\t[0-9]+.*\thttp://(?P<url>.*)\t' %stad
             url = re.findall(pattern, viktigestader)
 
@@ -90,7 +91,7 @@ class Yr(callbacks.Plugin):
         """
        
         place = verargs.capitalize()
-        viktigestader = file('plugins/Yr/places.txt').read()
+        viktigestader = file(os.path.dirname(__file__) + '/places.txt').read()
         pattern = '[0-9]+\t%s\t[0-9]+.*\thttp://(?P<url>.*)\t' % place
         url = re.findall(pattern, viktigestader)
 
