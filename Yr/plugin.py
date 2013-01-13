@@ -92,7 +92,7 @@ class Yr(callbacks.Plugin):
        
         place = verargs.capitalize()
         viktigestader = file(os.path.dirname(__file__) + '/places.txt').read()
-        pattern = '[0-9]+\t%s\t[0-9]+.*\thttp://(?P<url>.*)\t' % place
+        pattern = '\t%s\t.*\thttp://(?P<url>.*)\t' % place
         url = re.findall(pattern, viktigestader)
 
         if not url:
