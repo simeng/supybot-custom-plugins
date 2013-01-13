@@ -53,7 +53,7 @@ class Yr(callbacks.Plugin):
         if not opts:
             stad = verargs.capitalize()
             viktigestader = file(os.path.dirname(__file__) + '/places.txt').read()
-            pattern = '[0-9]+\t%s\t[0-9]+.*\thttp://(?P<url>.*)\t' %stad
+            pattern = '\t%s\t.*\thttp://(?P<url>.*)\t' %stad
             url = re.findall(pattern, viktigestader)
 
             if not url:
