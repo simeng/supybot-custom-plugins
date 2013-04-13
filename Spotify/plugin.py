@@ -52,7 +52,7 @@ class Spotify(callbacks.Plugin):
             else:
                 message = msg.args[1]
 
-            m = re.search("(?:https?://open\.spotify\.com|spotify)[:/](?P<a>[^:/]+)[:/](?P<b>[^:/]+)([:/]playlist[:/](?P<c>[^:/]+))?$", message)
+            m = re.search("(?:https?://open\.spotify\.com|spotify)[:/](?P<a>[^(:/|\s)]+)[:/](?P<b>[^(:/|\s)]+)([:/]playlist[:/](?P<c>[^(:/|\s)]+))?", message)
             if m:
                 r = m.groupdict()
                 type = "playlist" if r['c'] else r['a']
